@@ -59,7 +59,7 @@ describe("normalizePayload", () => {
 });
 
 describe("fetchModels", () => {
-  test("polls keyless GET upstream with no auth headers", async () => {
+  test("polls keyless GET upstream with session header", async () => {
     let seenUrl = "";
     let seenInit: RequestInit | undefined;
     const calls: unknown[] = [];
@@ -81,6 +81,11 @@ describe("fetchModels", () => {
     const keys: string[] = Object.keys(headers).map((k) => k.toLowerCase());
     expect(keys).not.toContain("authorization");
     expect(keys).not.toContain("x-api-key");
+    expect(keys).toContain("x-opencode-session");
+    const sessionId = headers["x-opencode-session"];
+    expect(sessionId).toBeTruthy();
+    // Session ID should be a valid UUID v4 format (loose check)
+    expect(sessionId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
     expect(calls.length).toBe(1);
   });
 

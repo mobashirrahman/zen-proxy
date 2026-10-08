@@ -60,12 +60,19 @@ export interface FetchModelsOptions {
 
 /**
  * Keyless GET of the upstream catalog. Sends no Authorization / api-key
- * headers — the Zen models endpoint is public.
+ * headers — the Zen models endpoint is public. Includes x-opencode-session
+ * header for request tracking (required by opencode.ai).
  */
 export async function fetchModels(opts?: FetchModelsOptions): Promise<NormalizedModel[]> {
   const fetchFn: typeof fetch = opts?.fetchFn ?? fetch;
   const url: string = opts?.url ?? MODELS_URL;
-  const res: Response = await fetchFn(url, { method: "GET" });
+  const sessionId: string = crypto.randomUUID();
+  const res: Response = await fetchFn(url, {
+    method: "GET",
+    headers: {
+      "x-opencode-session": sessionId,
+    },
+  });
   if (!res.ok) throw new Error(`models fetch failed: ${res.status} ${url}`);
   const payload: unknown = (await res.json()) as unknown;
   return normalizePayload(payload);
